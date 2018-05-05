@@ -12,5 +12,8 @@ add_library(Client ${CMAKE_SOURCE_DIR}/Client/Client.cpp)
 include_directories("${CMAKE_SOURCE_DIR}/Server")
 include_directories("${CMAKE_SOURCE_DIR}/Client")
 
-add_executable(RunClinet ${CMAKE_SOURCE_DIR}/RunClient.cpp)
+add_executable(RunClient ${CMAKE_SOURCE_DIR}/RunClient.cpp)
+target_link_libraries(RunClient pthread)
 add_executable(RunServer ${CMAKE_SOURCE_DIR}/RunServer.cpp)
+target_link_libraries(RunServer pthread)
+

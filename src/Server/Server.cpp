@@ -2,9 +2,8 @@
 #define BROADCASTSERVER_SERVER
 
 #include <iostream>
+#include "Server.h"
 
-int Server() {
-	std::cout << "Server: OK" << std::endl;
-}
+
 
 #endif
