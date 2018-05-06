@@ -2,6 +2,7 @@
 #define BROADCASTSERVER_SERVER_H
 
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <iostream>
@@ -66,23 +67,42 @@ public:
 				std::cout << "ServerError: accept failed." << std::endl;
 				continue;
 			}
-			addClient(client_socket, client_addr);
-			std::thread(&Server::client_worker, this, client_socket, client_addr, client_size);
+			auto client_ptr = addClient(client_socket, client_addr);
+			std::thread(&Server::client_worker, this, client_ptr);
 		}
 		std::cout << "Server: OK" << std::endl;
 		close(server_socket);
 	}
 
-	void client_worker(int c_sock, struct sockaddr* c_addr, socklen_t* c_size) {
+	void client_worker(std::weak_ptr<LocalClient> c) {
 		std::cout << "ServerWorker: client accepted." << std::endl;
+		char msg[1024];
+		while (auto client = c.lock()) {
+			size_t msg_len = recv(client->socket, (void *)msg, sizeof(msg), MSG_WAITALL);
+			if (msg_len == -1) {
+				std::cout << "ServerWorkerError: recv failed." << std::endl;
+				break;		
+			}
+			std::cout << "Message(client id="<< client->id << "): "<< msg << std::endl;
+		}
+		dropClient(c.lock());
 	}
-
-	void addClient(int socket, struct sockaddr* address) {
+	
+	void dropClient(std::shared_ptr<LocalClient> client) {
+		if (client) {		
+			std::lock_guard<std::mutex> lock(clients_mutex);
+			close(client->socket);
+			clients.erase(client->id);
+		}
+	}
+	
+	std::weak_ptr<LocalClient> addClient(int socket, struct sockaddr* address) {
 		std::lock_guard<std::mutex> lock(clients_mutex);
 		id_type id = next_id.load();
 		next_id++;
 		std::shared_ptr<LocalClient> sp(new LocalClient(socket, address, id));
 		clients.insert(std::make_pair(id, sp));
+		return std::weak_ptr<LocalClient>(sp);
 	}
 
 private:
