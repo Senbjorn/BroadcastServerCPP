@@ -1,0 +1,6 @@
+#ifndef BROADCASTSERVER_THREADSAFE
+#define BROADCASTSERVER_THREADSAFE
+
+#include "ThreadSafe.h"
+
+#endif
