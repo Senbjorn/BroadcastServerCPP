@@ -9,6 +9,7 @@
 /*
 *
 * Value, thread safe type
+* Concurrent iterators
 */
 template<typename Key, typename Value>
 class threadsafe_map {

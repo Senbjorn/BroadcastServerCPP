@@ -8,11 +8,11 @@ set (EXTRA_LIBS ${EXTRA_LIBS} pthread)
 
 add_library(Server ${CMAKE_SOURCE_DIR}/Server/Server.cpp)
 add_library(Client ${CMAKE_SOURCE_DIR}/Client/Client.cpp)
-add_library(ThreadSafe ${CMAKE_SOURCE_DIR}/ThreadSafe.cpp)
+#add_library(ThreadSafe ${CMAKE_SOURCE_DIR}/ThreadSafe/ThreadSafe.cpp)
 
 include_directories("${CMAKE_SOURCE_DIR}/Server")
 include_directories("${CMAKE_SOURCE_DIR}/Client")
-include_directories("${CMAKE_SOURCE_DIR}/ThreadSafe")
+#include_directories("${CMAKE_SOURCE_DIR}/ThreadSafe")
 
 add_executable(RunClient ${CMAKE_SOURCE_DIR}/RunClient.cpp)
 target_link_libraries(RunClient pthread)
