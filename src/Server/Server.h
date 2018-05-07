@@ -84,11 +84,11 @@ private:
 			struct sockaddr client_addr;
 			socklen_t client_size;
 			int client_socket = accept(server_socket, &client_addr, &client_size);
-			std::cout << "client_socket: " << client_socket << std::endl;
 			if (client_socket < 0) {
 				std::cout << "ServerError: accept failed." << std::endl;
 				continue;
 			}
+			std::cout << "ServerWorker: client accepted on socket " << client_socket << std::endl;
 			auto client_ptr = addClient(client_socket, client_addr);
 		}
 		std::cout << "Server: OK" << std::endl;
@@ -96,19 +96,31 @@ private:
 	}
 
 	void client_worker(std::weak_ptr<LocalClient> c) {
-		std::cout << "ServerWorker: client accepted." << std::endl;
 		char msg[1024];
+		size_t msg_len;
 		while (auto client = c.lock()) {
-			size_t msg_len = recv(client->socket, (void *)msg, sizeof(msg), MSG_WAITALL);
+			msg_len = recv(client->socket, (void *)msg, sizeof(msg), MSG_WAITALL);
 			if (msg_len <= 0) {
 				std::cout << "ServerWorkerError: recv failed." << std::endl;
 				break;		
 			}
 			std::cout << "Message(client id="<< client->id << "): "<< msg << std::endl;
+			broadcast(msg, sizeof(msg), client->id);
 		}
 		dropClient(c.lock());
 	}
-	
+	void broadcast(const char *buffer, size_t buf_size, id_type from_id) {
+			size_t buf_len;
+			for (auto pair: clients) {
+				auto id = pair.first;
+				auto client = pair.second;
+				if (id == from_id) continue;
+				buf_len = send(client->socket, buffer, buf_size, MSG_DONTWAIT);
+				if (buf_len < 0) {
+					std::cout << "ServerError: writing to id=" << id << std::endl;
+				}
+			}
+	}	
 	void dropClient(std::shared_ptr<LocalClient> client) {
 		if (client) {		
 			std::lock_guard<std::mutex> lock(clients_mutex);

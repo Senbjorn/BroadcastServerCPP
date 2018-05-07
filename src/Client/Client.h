@@ -56,10 +56,24 @@ private:
 			std::cout << "ClientError: can't connect to server." << std::endl;
 			exit(1);
 		}
-		char buffer[1024];
-		int buf_len;
+		std::thread writer(&Client::write_to_server, this, client_socket);
+		char msg[1024];
+		size_t msg_len;
 		while (true) {
-			std::cout << "Enter a message: " << std::endl;
+			msg_len = read(client_socket, (void *)msg, sizeof(msg));
+			if (msg_len <= 0) {
+				std::cout << "ClientError: recv failed." << std::endl;
+				break;
+			}
+			std::cout << "From server: " << msg << std::endl;
+		}
+	}
+
+	void write_to_server(int client_socket) {
+		char buffer[1024];
+		size_t buf_len;
+		while (true) {
+			std::cout << ">>";
 			bzero(buffer, 1024);
 			fgets(buffer, 1023, stdin);
 			buf_len = send(client_socket, buffer, sizeof(buffer), MSG_DONTWAIT);
@@ -67,8 +81,6 @@ private:
 				std::cout << "ClientError: writing to socket." << std::endl;
 			}
 		}
-		std::string s;
-		std::cin >> s; 	
 	}
 
 };
