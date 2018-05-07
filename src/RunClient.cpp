@@ -2,10 +2,13 @@
 #define BROADCASTSERVER_RUNCLINET
 
 #include <iostream>
-#include "Client.cpp"
+#include <netdb.h>
+#include "Client.h"
 
 int main() {
-	Client();
+	const char * name = "localhost";
+	Client client(name, 8000);
+	client.run();
 	std::cout << "RunClient: OK" << std::endl;
 }
 
